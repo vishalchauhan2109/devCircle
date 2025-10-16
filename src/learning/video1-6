@@ -1,0 +1,76 @@
+
+//admin and user auth check at top middleware if token matched then send to next route handler where data send
+app.use("/admin"||"/user",(req,res,next)=>{
+
+  const token = "xsknsyz";
+
+  if(token === "xyz"){
+    next();
+  }else{
+    res.send("wrong token");
+  }
+});
+
+app.get("/admin/auth",(req,res)=>{
+  res.send("welcome admin ")
+})
+
+app.get("/user/auth",(req,res)=>{
+  res.send("welcome user ")
+})
+
+learning About Next function
+
+app.use("/user/",(req, res,next) => {
+    next();
+})
+
+app.use("/user/",(req, res,next) => {
+  res.send("vishal2")
+  next();
+})
+
+app.use("/user/",(req, res,next) => {
+
+  next();
+})
+
+app.use("/user/",(req, res,next) => {
+    res.send("vishal4")
+}
+
+);
+
+
+params
+
+app.get("/user/:id/:name/:password",(req, res)=>{
+  console.log(req.params);
+  res.send({name:"vishal2", class: 5})
+})
+
+
+
+
+
+app.get(/user/,(req, res)=>{
+  console.log(req.query);
+  res.send({name:"vishal2", class: 5})
+})
+
+app.post(/.*ads$/, (req, res) => {
+  res.send("Hello from the test match");
+});
+app.post(/ab+v/,(req, res) => {
+  res.send("Hello");
+});
+app.use("/", (req, res) => {
+  res.send("Hello");
+});
+Root route
+
+
+Optionally, a fallback if you want to catch ill paths (404)
+app.use((req, res) => {
+  res.status(404).send("404 nothing Found");
+});
