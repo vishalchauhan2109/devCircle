@@ -2,8 +2,9 @@
   "name": "devcircle",
   "version": "1.0.0",
   "description": "connect here",
-  "main": "index.js",
+  "main": "src/app.js",
   "scripts": {
+    "dev": "nodemon src/app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Vishal Chauhan",
@@ -12,4 +13,6 @@
     "express": "^5.1.0",
     "mongoose": "^8.19.1"
   }
+
+  
 }
