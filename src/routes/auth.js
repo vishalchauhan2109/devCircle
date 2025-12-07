@@ -58,7 +58,7 @@ authRouter.post("/login" ,async (req,res)=>{
       throw new Error("check your password ");
     }
 
-    //passwor is valid 
+    //password is valid 
 
     //create JWT Token
     const token = await jwt.sign({_id: user._id},"Vishal@2109")
