@@ -6,6 +6,8 @@ const validator = require("validator");
 const jwt = require('jsonwebtoken');
 const authRouter = express.Router();
 
+console.log("999999");
+
 //signup
 authRouter.post("/signup", async (req,res)=>{
       try {
@@ -14,18 +16,22 @@ authRouter.post("/signup", async (req,res)=>{
         validationSignup(req);
     
         // Encrypt the password
-        const { firstName, lastName, emailId, password } = req.body;
+        const { firstName, lastName, emailId, password,photoURL } = req.body;
     
         const passwordHash = await bcrypt.hash(password, 10);
         // console.log(passwordHash);
     
         //Creating a new  instance of the user mode
-    
+        
+        const firstname = firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase(); 
+        
+        const lastname = lastName.charAt(0).toUpperCase() + lastName.slice(1).toLowerCase(); 
         const user = new User({
-          firstName,
-          lastName,
+          firstName : firstname,
+          lastName : lastName,
           emailId,
           password: passwordHash,
+          photoURL
         });
         await user.save();
         res.send("new user added");
@@ -36,8 +42,11 @@ authRouter.post("/signup", async (req,res)=>{
 
 //login
 authRouter.post("/login" ,async (req,res)=>{
+  console.log("call in login");
     try {
     const { emailId, password } = req.body;
+
+    
 
     // Email format check
     if (!validator.isEmail(emailId)) {
@@ -47,7 +56,7 @@ authRouter.post("/login" ,async (req,res)=>{
     // check for user in db
     const user = await User.findOne({ emailId: emailId });
     if (!user) {        //if not found
-      return res.status(401).send({ error: "User not found" });
+      return res.status(401).send({ error: "PLease check Your Username Or Password again" });
     }
 
     //if user founded then
@@ -72,10 +81,11 @@ authRouter.post("/login" ,async (req,res)=>{
     );
 
     //if password match
-    res.send("Login successful" );
+    // res.send("Login successful" );
+    res.status(200).json(user);
   } catch (error) {
     // console.error("Login error:", error);
-    res.status(500).send(error + " " + "Something went wrong");
+    res.status(500).send("Please check Your UserName Or Password again");
   }
 })
 

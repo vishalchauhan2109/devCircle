@@ -2,6 +2,7 @@ const express = require("express");
 const { UserAuth } = require("../Middleware/UserAuth");
 const connectionRequestSchema = require("../models/ConnectionRequest");
 const User = require("../models/User");
+const ConnectionRequest = require("../models/ConnectionRequest");
 
 const requestRouter = express.Router();
 
@@ -62,5 +63,33 @@ requestRouter.post(
         }
     })
 
+    requestRouter.get("/feed",UserAuth, async(req,res)=>{
 
+        try{
+            const loggedUser = req.user
+            
+
+            const AlreadyExist = await ConnectionRequest.find({
+                $or:[{fromUserId: loggedUser._id}, {toUserId : loggedUser._id}]
+            }).select("fromUserId  toUserId")  
+            
+            const hiddenRequest = new Set();
+
+            AlreadyExist.forEach((req) => {
+                hiddenRequest.add(req.fromUserId);
+                hiddenRequest.add(req.toUserId);
+            });
+
+            const user = await User.find({
+                _id : { $nin: Array.from(hiddenRequest) }
+            })
+
+            console.log(user);
+            res.send(user);
+        }
+        catch(err){
+            res.status(400).send("Invalid Request")
+        }
+    }
+    )
 module.exports = requestRouter;
