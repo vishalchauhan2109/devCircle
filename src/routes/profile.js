@@ -22,15 +22,22 @@ profileRouter.patch("/profile/edit", UserAuth, async (req, res) => {
         if (!validateProfileEdit(req)) {
             throw new console.error("request not valid");
         }
+
+        console.log(validateProfileEdit)
         const loggedInUser = req.user;
-        console.log(loggedInUser)
+        console.log(req.body)
 
         Object.keys(req.body).forEach((key) => (loggedInUser[key] = req.body[key]));
-        // console.log(req.body);
-        return res.send("user updated")
+        console.log(loggedInUser);
 
-    } catch {
-        res.status(400).send("Error found")
+        let updatedData = await loggedInUser.save();
+        return res.status(201).json({
+            status : 200,
+            data : updatedData
+        })
+
+    } catch(err) {
+        res.status(400).send("Error found" + err)
     }
 })
 

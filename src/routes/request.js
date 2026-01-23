@@ -3,48 +3,52 @@ const { UserAuth } = require("../Middleware/UserAuth");
 const connectionRequestSchema = require("../models/ConnectionRequest");
 const User = require("../models/User");
 const ConnectionRequest = require("../models/ConnectionRequest");
-
 const requestRouter = express.Router();
 
-requestRouter.post(
-    "/request/send/:status/:toUserId",
+requestRouter.post("/request/send/:status/:toUserId",
     UserAuth,
     async (req, res) => {
-        const allowdStatus = ["interested","ignored"]
-        console.log(req.user._id)
+        const allowdStatus = ["ignored", "interested"]
+        // console.log(req.user._id)
+
         try {
             const fromUserId = req.user._id;
-            // console.log(fromUserId)
             const toUserId = req.params.toUserId;
             const status = req.params.status
-            const toUser = await User.findOne({_id : toUserId})
-            console.log(toUser.firstName)
+            // const toUser = await User.findOne({_id : toUserId})
+            console.log(status)
+            console.log(fromUserId)
+            console.log(toUserId)
 
             // status can only have ["ignore","interested"] thes value 
             if (!allowdStatus.includes(status)) {
-                throw new Error(`status is not correct : "${status}"`);
+                throw new Error(`status is incorrect : ${status}`);
             }
 
+            console.log("error found")
             // if user send request to their own id
             if (fromUserId.equals(toUserId)) {
                 throw new Error("Cannot send the request to your own id");
             }
 
-            const checkUser = await User.findOne({_id : toUserId})
+            const checkUser = await User.findOne({ _id: toUserId })
             console.log(checkUser)
-            if(!checkUser){
+            if (!checkUser) {
                 return res.status(404).send("user not found")
             }
+
             //cannot send request same person again or that person cannot send request to you as well
-            const existingData = await connectionRequestSchema.findOne({
+            const existingData = await connectionRequest.findOne({
                 $or: [
                     { fromUserId, toUserId },
                     { fromUserId: toUserId, toUserId: fromUserId }
                 ],
             })
+
             if (existingData) {
                 return res.status(500).send("request already exist")
             }
+
             const connectionRequest = new connectionRequestSchema({
                 fromUserId,
                 toUserId,
@@ -54,42 +58,133 @@ requestRouter.post(
 
             const data = await connectionRequest.save();
             res.json({
-                message: `${req.user.firstName} ${status === "interested" ? "ignored":"passed"} ${toUser.firstName} profile `
+                message: `${req.user.firstName} ${status === "interested" ? "interested" : "ignored"} ${checkUser.firstName} profile `
             })
             res.send(data)
         }
         catch (error) {
-            res.status(402).send("error" + error)
+            console.log(error)
+            res.status(502).send("error" + error)
         }
     })
 
-    requestRouter.get("/feed",UserAuth, async(req,res)=>{
+requestRouter.post("/request/review/:status/:id"
+    , UserAuth,
+    async (req, res) => {
 
-        try{
-            const loggedUser = req.user
-            
+        try {
+            const allowdStatus = ["accepted", "rejected"]
+            const loggedUser = req.user;
+            const { status } = req.params
+            const { id } = req.params
 
-            const AlreadyExist = await ConnectionRequest.find({
-                $or:[{fromUserId: loggedUser._id}, {toUserId : loggedUser._id}]
-            }).select("fromUserId  toUserId")  
-            
-            const hiddenRequest = new Set();
+            if (!allowdStatus.includes(status)) {
+                res.status(500).json({
+                    message: "invalid status found"
+                })
+            }
+            console.log(status)
+            // const checkUser = await connectionRequestSchema.findone({ fromUserId: id })
+            // if (!checkUser) {
+            //     throw new error("User not found")
+            // }
 
-            AlreadyExist.forEach((req) => {
-                hiddenRequest.add(req.fromUserId);
-                hiddenRequest.add(req.toUserId);
-            });
+            // console.log(checkUser)
+            const checkRequests = await connectionRequestSchema.findOne({
+                fromUserId: id,
+                toUserId: loggedUser._id,
+                status: "interested"
 
-            const user = await User.find({
-                _id : { $nin: Array.from(hiddenRequest) }
             })
+            if (!checkRequests) {
+                throw new error("request not found")
+            }
+            console.log(checkRequests.status)
+            checkRequests.status = status;
+            console.log(checkRequests.status)
 
-            console.log(user);
-            res.send(user);
+            await checkRequests.save();
+
+            res.send(checkRequests)
+
+        } catch (error) {
+            res.status(500).json({
+                message: "error :" + error
+            })
         }
-        catch(err){
-            res.status(400).send("Invalid Request")
-        }
+
     }
-    )
+)
+
+requestRouter.get("/feed", UserAuth, async (req, res) => {
+
+    try {
+        const loggedUser = req.user
+
+
+
+
+        const AlreadyExist = await ConnectionRequest.find({
+            $or: [{ fromUserId: loggedUser._id }, { toUserId: loggedUser._id }]
+        }).select("fromUserId  toUserId")
+
+        const hiddenRequest = new Set();
+
+        AlreadyExist.forEach((a) => {
+            hiddenRequest.add(a.fromUserId);
+            hiddenRequest.add(a.toUserId);
+        });
+
+        console.log(hiddenRequest);
+        const user = await User.find({
+            _id: { $nin: Array.from(hiddenRequest) }
+        })
+
+        console.log(user);
+        res.send(user);
+    }
+    catch (err) {
+        res.status(400).send("Invalid Request")
+    }
+})
+
+requestRouter.get("/incomingRequest",UserAuth,async (req,res)=>{
+
+    try{
+
+        const loggedUser = req.user; 
+        console.log(loggedUser)
+
+        const checkRequests = await  ConnectionRequest.find(
+            {
+                toUserId: loggedUser?._id
+            }
+        )
+
+        if(!checkRequests){
+            res.json({
+                message:"checkRequest error"
+            })
+        }
+
+        if(checkRequests.length === 0){
+
+            res.send("No request found")
+        }
+
+        res.send(checkRequests)
+    }
+    catch(error){
+
+        res.status(500).send("err :" + error)
+        // console.log(error)
+    }
+
+
+})
+
+
+
+
+
 module.exports = requestRouter;
