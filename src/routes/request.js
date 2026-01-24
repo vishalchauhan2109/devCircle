@@ -38,7 +38,7 @@ requestRouter.post("/request/send/:status/:toUserId",
             }
 
             //cannot send request same person again or that person cannot send request to you as well
-            const existingData = await connectionRequest.findOne({
+            const existingData = await connectionRequestSchema.findOne({
                 $or: [
                     { fromUserId, toUserId },
                     { fromUserId: toUserId, toUserId: fromUserId }
@@ -124,7 +124,7 @@ requestRouter.get("/feed", UserAuth, async (req, res) => {
 
 
 
-        const AlreadyExist = await ConnectionRequest.find({
+        const AlreadyExist = await connectionRequestSchema.find({
             $or: [{ fromUserId: loggedUser._id }, { toUserId: loggedUser._id }]
         }).select("fromUserId  toUserId")
 
@@ -136,6 +136,7 @@ requestRouter.get("/feed", UserAuth, async (req, res) => {
         });
 
         console.log(hiddenRequest);
+       
         const user = await User.find({
             _id: { $nin: Array.from(hiddenRequest) }
         })
@@ -153,14 +154,16 @@ requestRouter.get("/incomingRequest",UserAuth,async (req,res)=>{
     try{
 
         const loggedUser = req.user; 
-        console.log(loggedUser)
+        // console.log(loggedUser)
 
-        const checkRequests = await  ConnectionRequest.find(
+        const checkRequests = await  connectionRequestSchema.find(
             {
-                toUserId: loggedUser?._id
+                toUserId: loggedUser?._id,
+                status : "interested"
             }
-        )
+        ).select("fromUserId")
 
+        // console.log(checkRequests)
         if(!checkRequests){
             res.json({
                 message:"checkRequest error"
@@ -168,19 +171,32 @@ requestRouter.get("/incomingRequest",UserAuth,async (req,res)=>{
         }
 
         if(checkRequests.length === 0){
-
             res.send("No request found")
         }
 
-        res.send(checkRequests)
+        const fui = checkRequests.map((item)=>(
+            item.fromUserId
+        ))
+        console.log(fui);
+        
+        // checkRequests.forEach()
+        // const data = await User.find({
+        //     fromUserId : {$in : checkRequests}
+        // })
+
+        const data = await User.find({
+            _id : { $in: fui }
+        })
+
+        console.log(data)
+        
+        res.send(data)
     }
     catch(error){
 
         res.status(500).send("err :" + error)
         // console.log(error)
     }
-
-
 })
 
 
