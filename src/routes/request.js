@@ -2,7 +2,7 @@ const express = require("express");
 const { UserAuth } = require("../Middleware/UserAuth");
 const connectionRequestSchema = require("../models/ConnectionRequest");
 const User = require("../models/User");
-const ConnectionRequest = require("../models/ConnectionRequest");
+// const ConnectionRequest = require("../models/ConnectionRequest");
 const requestRouter = express.Router();
 
 requestRouter.post("/request/send/:status/:toUserId",
@@ -156,7 +156,7 @@ requestRouter.get("/incomingRequest",UserAuth,async (req,res)=>{
         const loggedUser = req.user; 
         // console.log(loggedUser)
 
-        const checkRequests = await  connectionRequestSchema.find(
+        const checkRequests = await connectionRequestSchema.find(
             {
                 toUserId: loggedUser?._id,
                 status : "interested"
@@ -198,6 +198,54 @@ requestRouter.get("/incomingRequest",UserAuth,async (req,res)=>{
         // console.log(error)
     }
 })
+
+requestRouter.get("/friends",UserAuth,
+    async(req,res) =>{
+
+        try{
+        const loggedUser = req.user;
+
+        const friends = await  connectionRequestSchema.find({
+           
+           $and:[
+            {
+             $or:[
+                {
+                    toUserId:loggedUser._id
+                },
+                {
+                    fromUserId: loggedUser._id
+                }]
+            },
+            {
+                status:"accepted"
+            }
+        ]
+        })
+        console.log(friends);
+        
+        console.log(friends)
+        // const friend = await User.forEach((user)=>{
+        //   const data =   user.find({
+        //     _id: (friends.toUserId === loggedUser._id)?friends.fromUserId:friends.toUserId
+        //     })
+
+        //     console.log(data)
+        // })
+        const friend = friends.map((item,idx)=>{
+            return (item.toUserId.toString() !== loggedUser._id.toString())?  item.toUserId:item.fromUserId
+        })
+        
+        const data = await User.find({
+            _id:friend
+        })
+        res.send(data)
+    }
+    catch(error){
+        res.status(500).send("Err" + error )
+    }
+}
+)
 
 
 
