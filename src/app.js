@@ -5,14 +5,18 @@ const cookieparser = require("cookie-parser");
 const cors = require("cors")
 const path = require("path");
 
-app.use(cors(
-  
-  {
-    
-  origin : "http://localhost:5173",
-  credentials:true,
-  }
-));
+const cors = require("cors");
+
+app.use(
+  cors({
+    origin: [
+      "https://devcirclefrontendd.onrender.com",
+      "http://localhost:5173"
+    ],
+    credentials: true,
+  })
+);
+app.options("*", cors());
 
 app.use(express.json());
 app.use(cookieparser());
