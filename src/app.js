@@ -65,7 +65,6 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 /* =========================
    ROUTES
 ========================= */
-
 const authRouter = require("./routes/auth");
 const profileRouter = require("./routes/profile");
 const requestRouter = require("./routes/request");
@@ -82,12 +81,12 @@ app.use("/", postRouter);
 
 DB()
   .then(() => {
-    console.log("✅ Database connected");
+    console.log(" Database connected");
 
     app.listen(2100, () => {
-      console.log("🚀 Server running on port 2100");
+      console.log(" Server running on port 2100");
     });
   })
   .catch((err) => {
-    console.error("❌ Database connection error:", err);
+    console.error(" Database connection error:", err);
   });
