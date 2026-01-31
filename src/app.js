@@ -1,61 +1,93 @@
 const express = require("express");
 const DB = require("./Config/database");
-const app = express();
-const cookieparser = require("cookie-parser");
-// const cors = require("cors")
+const cookieParser = require("cookie-parser");
 const path = require("path");
+const cors = require('cors');
 
-// const cors = require("cors");
-const cors = require("cors");
+const app = express();
 
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://devcirclefrontendd.onrender.com"
-];
+/* =========================
+   MANUAL CORS + PREFLIGHT
+   (MOST IMPORTANT PART)
+========================= */
+// app.use(cors())
+// app.use((req, res, next) => {
+//   const allowedOrigins = [
+//     "http://localhost:5173",
+// "https://iridescent-cassata-dcb65a.netlify.app" 
+//  ];
 
-app.use(
-  cors({
-    origin(origin, callback) {
-      if (!origin) return callback(null, true);
+//   const origin = req.headers.origin;
+//   console.log(origin)
 
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
+//   if (allowedOrigins.includes(origin)) {
+//     res.setHeader("Access-Control-Allow-Origin", origin);
+//   }
 
-      return callback(new Error("Not allowed by CORS"));
-    },
-    credentials: true,
-  })
-);
+//   res.setHeader("Access-Control-Allow-Credentials", "true");
+//   res.setHeader(
+//     "Access-Control-Allow-Methods",
+//     "GET, POST, PUT, DELETE, OPTIONS"
+//   );
+//   res.setHeader(
+//     "Access-Control-Allow-Headers",
+//     "Content-Type, Authorization"
+//   );
+
+//   // 🔥 Handle preflight request here itself
+//   if (req.method === "OPTIONS") {
+//     return res.sendStatus(200);
+//   }
+
+//   next();
+// });
+
+app.use(cors({
+  origin: [
+    "http://localhost:5173",
+    "https://iridescent-cassata-dcb65a.netlify.app"
+  ],
+  credentials: true
+}));
 
 
+/* =========================
+   MIDDLEWARES
+========================= */
 
 app.use(express.json());
-app.use(cookieparser());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
-//import all the routes
-const authRouter = require("./routes/auth")
-const profileRouter = require("./routes/profile")
+// static uploads folder
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+/* =========================
+   ROUTES
+========================= */
+
+const authRouter = require("./routes/auth");
+const profileRouter = require("./routes/profile");
 const requestRouter = require("./routes/request");
 const postRouter = require("./routes/post");
 
-// app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/", authRouter);
+app.use("/", profileRouter);
+app.use("/", requestRouter);
+app.use("/", postRouter);
 
-app.use("/",authRouter);
-app.use("/",profileRouter);
-app.use("/",requestRouter);
-app.use("/",postRouter);
+/* =========================
+   DATABASE + SERVER
+========================= */
 
 DB()
   .then(() => {
-    console.log("database is connected");
+    console.log("✅ Database connected");
 
     app.listen(2100, () => {
-      console.log("your server is created ",`${2100}`);
+      console.log("🚀 Server running on port 2100");
     });
   })
-  .catch((error) => {
-    console.log("error");
+  .catch((err) => {
+    console.error("❌ Database connection error:", err);
   });
