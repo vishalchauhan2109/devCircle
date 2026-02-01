@@ -59,6 +59,7 @@ postRouter.get("/HomeFeed/:id", UserAuth, async (req, res) => {
         { status: "accepted" },
       ],
     })
+    console.log(post);
     // .select( (user.fromUserId.toString() === id) ?user.toUserId.toString(): user.fromUserId.toString())
         
         const connectionId = post.map((item)=>{
@@ -84,7 +85,7 @@ postRouter.get("/HomeFeed/:id", UserAuth, async (req, res) => {
     console.log(connectionId)
     
 
-    res.send({newposts,UserProfile});
+    res.send(newposts);
   } catch (error) {
     res.status(402).send("Error :" + error);
   }

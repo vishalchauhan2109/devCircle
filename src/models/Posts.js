@@ -26,6 +26,10 @@ const PostSchema = new mongoose.Schema({
     //   }
     // },
   },
+  
+  // user: {
+  //   type: 
+  // }
 
   // like:[{
   //   type: mongoose.Schema.Types.ObjectId,

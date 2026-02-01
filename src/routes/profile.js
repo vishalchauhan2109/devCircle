@@ -2,7 +2,8 @@ const express = require("express");
 const { UserAuth } = require("../Middleware/UserAuth");
 const { validateProfileEdit } = require("../utils/Validation");
 const bcrypt = require("bcrypt")
-const validator = require("validator")
+const validator = require("validator");
+const User = require("../models/User");
 const profileRouter = express.Router()
 
 profileRouter.get("/profile/view", UserAuth, async (req, res) => {
@@ -74,5 +75,32 @@ profileRouter.patch("/profile/passwordedit", UserAuth, async (req, res) => {
             })
     }
 })
+
+profileRouter.get("/user/:id", UserAuth,
+    async (req,res)=>{
+
+        try{
+
+        const {id} = req.params;
+        // console.log(id)
+    //     if (!mongoose.Types.ObjectId.isValid(id)) {
+    //   return res.status(400).json({ message: "Invalid user ID" });
+    // }
+        const user = await User.findById(id)
+
+        console.log(user);
+        
+        if(!user){
+            throw new error("user not found")
+        }
+        res.send(user)
+        
+
+        }catch(error){
+            res.status(500).send("Error"+" "+error)
+        }
+
+    }
+)
 
 module.exports = profileRouter;
