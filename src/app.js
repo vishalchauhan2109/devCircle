@@ -11,7 +11,7 @@ const app = express();
 app.use(cors({
   origin: [
     "http://localhost:5173",
-    "https://iridescent-cassata-dcb65a.netlify.app"
+    "http://iridescent-cassata-dcb65a.netlify.app"
   ],
   credentials: true
 }));
