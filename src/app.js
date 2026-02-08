@@ -45,6 +45,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+
 // static uploads folder
 app.use("/uploads", express.static("uploads"));
 
@@ -65,11 +66,13 @@ app.use("/", postRouter);
    DATABASE + SERVER
 ========================= */
 
+const PORT = process.env.PORT || 2100;
+
 DB()
   .then(() => {
     console.log(" Database connected");
 
-    app.listen(2100, () => {
+    app.listen(PORT, () => {
       console.log(" Server running on port 2100");
     });
   })

@@ -120,10 +120,6 @@ requestRouter.get("/feed", UserAuth, async (req, res) => {
 
     try {
         const loggedUser = req.user
-
-
-
-
         const AlreadyExist = await connectionRequestSchema.find({
             $or: [{ fromUserId: loggedUser._id }, { toUserId: loggedUser._id }]
         }).select("fromUserId  toUserId")
