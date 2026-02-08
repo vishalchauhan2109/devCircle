@@ -8,14 +8,30 @@ const cors = require('cors');
 const app = express();
 
 
-app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    "https://devcirclefrontendd.onrender.com",
-    "https://iridescent-cassata-dcb65a.netlify.app"
-  ],
-  credentials: true
-}));
+// app.use(cors({
+//   origin: [
+//     "http://localhost:5173",
+//     "https://devcirclefrontendd.onrender.com",
+//     "https://iridescent-cassata-dcb65a.netlify.app"
+//   ],
+//   credentials: true
+// }));
+
+/* 🔥 REQUIRED FOR RENDER 🔥 */
+app.set("trust proxy", 1);
+
+/* 🔥 CORS 🔥 */
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "https://devcirclefrontendd.onrender.com",
+      "https://iridescent-cassata-dcb65a.netlify.app",
+    ],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  })
+);
 
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
