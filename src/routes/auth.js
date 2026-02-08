@@ -43,53 +43,54 @@ authRouter.post("/signup", async (req,res)=>{
 })
 
 //login
-authRouter.post("/login" ,async (req,res)=>{
-  console.log("call in login");
-    try {
+authRouter.post("/login", async (req, res) => {
+  try {
     const { emailId, password } = req.body;
 
-    
-
-    // Email format check
     if (!validator.isEmail(emailId)) {
-      throw new Error("Email-id is not valid");
+      return res.status(400).json({ error: "Invalid email" });
     }
 
-    // check for user in db
-    const user = await User.findOne({ emailId: emailId });
-    if (!user) {        //if not found
-      return res.status(401).send({ error: "PLease check Your Username Or Password again" });
+    const user = await User.findOne({ emailId });
+    if (!user) {
+      return res.status(401).json({ error: "Invalid credentials" });
     }
 
-    //if user founded then
-    // Compare password
-    const storedPassword = user.password;
-    const isValidPassword = await bcrypt.compare(password, storedPassword);
+    const isValidPassword = await bcrypt.compare(password, user.password);
     if (!isValidPassword) {
-      throw new Error("check your password ");
+      return res.status(401).json({ error: "Invalid credentials" });
     }
 
-    //password is valid 
-
-    //create JWT Token
-    const token = await jwt.sign({_id: user._id},"Vishal@2109")
-
-
-    //Add the token to the cookie and send the data response back to the user
-    res.cookie("token", token,
-      {
-        expires: new Date(Date.now() + 8*36000000),
-      }
+    // ✅ JWT (use env in production)
+    const token = jwt.sign(
+      { _id: user._id },
+      process.env.JWT_SECRET || "Vishal@2109",
+      { expiresIn: "7d" }
     );
 
-    //if password match
-    // res.send("Login successful" );
-    res.status(200).json(user);
+    // 🔥 PRODUCTION COOKIE 🔥
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true,        // REQUIRED on Render (HTTPS)
+      sameSite: "none",    // REQUIRED Netlify ↔ Render
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+
+    res.status(200).json({
+      message: "Login successful",
+      user: {
+        _id: user._id,
+        firstName: user.firstName,
+        emailId: user.emailId
+      }
+    });
+
   } catch (error) {
-    // console.error("Login error:", error);
-    res.status(500).send("Please check Your UserName Or Password again");
+    console.error(error);
+    res.status(500).json({ error: "Login failed" });
   }
-})
+});
+
 
 //logout
 authRouter.post("/logout" ,async (req,res) =>{
