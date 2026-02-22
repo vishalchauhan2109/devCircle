@@ -81,7 +81,9 @@ authRouter.post("/login", async (req, res) => {
       user: {
         _id: user._id,
         firstName: user.firstName,
-        emailId: user.emailId
+        emailId: user.emailId,
+        photoURL: user.photoURL,
+        about: user.about
       }
     });
 
