@@ -3,44 +3,47 @@ const { validationSignup } = require("../utils/Validation");
 const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const validator = require("validator");
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 const authRouter = express.Router();
 
 console.log("999999");
 
 //signup
-authRouter.post("/signup", async (req,res)=>{
-      try {
-        // Validation of data
-    
-        validationSignup(req);
-    
-        // Encrypt the password
-        const { firstName, lastName, emailId, password,photoURL,about} = req.body;
-    
-        const passwordHash = await bcrypt.hash(password, 10);
-        // console.log(passwordHash);
-    
-        //Creating a new  instance of the user mode
-        
-        const firstname = firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase(); 
-        
-        const lastname = lastName.charAt(0).toUpperCase() + lastName.slice(1).toLowerCase(); 
-        const user = new User({
-          firstName : firstname,
-          lastName : lastName,
-          emailId,
-          password: passwordHash,
-          photoURL,
-          about
-        });
-        await user.save();
-        res.send("new user added");
-      } catch (err) {
-        console.log(err)
-        res.status(402).send(err.message);
-      }
-})
+authRouter.post("/signup", async (req, res) => {
+  try {
+    // Validation of data
+
+    validationSignup(req);
+
+    // Encrypt the password
+    const { firstName, lastName, emailId, password, photoURL, about } =
+      req.body;
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    // console.log(passwordHash);
+
+    //Creating a new  instance of the user mode
+
+    const firstname =
+      firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase();
+
+    const lastname =
+      lastName.charAt(0).toUpperCase() + lastName.slice(1).toLowerCase();
+    const user = new User({
+      firstName: firstname,
+      lastName: lastName,
+      emailId,
+      password: passwordHash,
+      photoURL,
+      about,
+    });
+    await user.save();
+    res.send("new user added");
+  } catch (err) {
+    console.log(err);
+    res.status(402).send(err.message);
+  }
+});
 
 //login
 authRouter.post("/login", async (req, res) => {
@@ -65,17 +68,16 @@ authRouter.post("/login", async (req, res) => {
     const token = jwt.sign(
       { _id: user._id },
       process.env.JWT_SECRET || "Vishal@2109",
-      { expiresIn: "7d" }
+      { expiresIn: "7d" },
     );
 
-    // 🔥 PRODUCTION COOKIE 🔥
     res.cookie("token", token, {
       httpOnly: true,
-      secure: true,        // REQUIRED on Render (HTTPS)
-      sameSite: "none",    // REQUIRED Netlify ↔ Render
-      maxAge: 7 * 24 * 60 * 60 * 1000
+      secure: true, // HTTPS (Render)
+      sameSite: "none", // cross-site
+      domain: ".onrender.com", // 🔥 THIS IS THE MISSING PIECE
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
-
     res.status(200).json({
       message: "Login successful",
       user: {
@@ -83,24 +85,22 @@ authRouter.post("/login", async (req, res) => {
         firstName: user.firstName,
         emailId: user.emailId,
         photoURL: user.photoURL,
-        about: user.about
-      }
+        about: user.about,
+      },
     });
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Login failed" });
   }
 });
 
-
 //logout
-authRouter.post("/logout" ,async (req,res) =>{
-    res.cookie("token" , null ,{
-        expires : new Date(Date.now()),
-    })
+authRouter.post("/logout", async (req, res) => {
+  res.cookie("token", null, {
+    expires: new Date(Date.now()),
+  });
 
-    res.send("logout successfully")
+  res.send("logout successfully");
 });
 
 module.exports = authRouter;
