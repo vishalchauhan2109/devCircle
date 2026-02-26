@@ -73,9 +73,8 @@ authRouter.post("/login", async (req, res) => {
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: true, // HTTPS (Render)
-      sameSite: "none", // cross-site
-      domain: ".onrender.com", // 🔥 THIS IS THE MISSING PIECE
+      secure: true, // required on Render / Netlify
+      sameSite: "none", // required for cross-origin
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
     res.status(200).json({

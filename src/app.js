@@ -57,7 +57,9 @@ const authRouter = require("./routes/auth");
 const profileRouter = require("./routes/profile");
 const requestRouter = require("./routes/request");
 const postRouter = require("./routes/post");
+// const { Server } = require("tls");
 // const { initializeSocket } = require("./utils/socket");
+const initilizeSocket = require("./utils/socket");
 
 app.use("/", authRouter);
 app.use("/", profileRouter);
@@ -68,8 +70,8 @@ app.use("/", postRouter);
    DATABASE + SERVER
 ========================= */
 
-// const server = http.createServer(app);
-// initializeSocket(server);
+const server = http.createServer(app);
+initilizeSocket(server);
 
 const PORT = process.env.PORT || 2100;
 
@@ -77,7 +79,7 @@ DB()
   .then(() => {
     console.log(" Database connected");
 
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
       console.log(" Server running on port 2100");
     });
   })
