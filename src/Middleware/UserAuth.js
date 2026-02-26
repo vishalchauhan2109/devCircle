@@ -1,43 +1,12 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
-// const UserAuth = async (req, res, next) => {
-//   console.log("inside userauth");
-//   try {
-//     const { cookies } = req;
-//     const { token } = cookies;
-
-//     if (!token) {
-//       throw new Error("session expired");
-//     }
-
-//     const decode = jwt.verify(token, "Vishal@2109");
-
-//     const id = decode._id;
-
-//     const user = await User.findOne({ _id: id });
-//     if (!user) {
-//       throw new Error("user not found");
-//     }
-
-//     req.user = user;
-//     // console.log(user)
-//     next();
-//   } catch (err) {
-//     res.status(401).json({
-//       error: err.message || "Authentication failed",
-//     });
-//   }
-// };
-
 const UserAuth = async (req, res, next) => {
-  console.log("inside userauth");
-
   try {
     const token = req.cookies?.token;
 
     if (!token) {
-      return res.status(401).json({ error: "Session expired" });
+      return res.status(401).json({ error: "Not authenticated" });
     }
 
     const decoded = jwt.verify(
@@ -45,8 +14,7 @@ const UserAuth = async (req, res, next) => {
       process.env.JWT_SECRET || "Vishal@2109"
     );
 
-    const user = await User.findById(decoded._id);
-
+    const user = await User.findById(decoded._id).select("-password");
     if (!user) {
       return res.status(401).json({ error: "User not found" });
     }
@@ -55,10 +23,7 @@ const UserAuth = async (req, res, next) => {
     next();
   } catch (err) {
     console.error("Auth error:", err.message);
-    return res.status(401).json({
-      error: "Invalid or expired token",
-    });
+    return res.status(401).json({ error: "Unauthorized" });
   }
 };
-
-module.exports = { UserAuth };
+module.exports = {UserAuth};
