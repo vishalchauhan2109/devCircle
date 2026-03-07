@@ -22,17 +22,32 @@ const app = express();
 app.set("trust proxy", 1);
 
 /* 🔥 CORS 🔥 */
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://dev-circlee.netlify.app",
+  "https://devcirclefrontendd.onrender.com",
+  "https://iridescent-cassata-dcb65a.netlify.app",
+];
+
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173"
-    ],
+    origin: function (origin, callback) {
+      // allow requests with no origin (Postman, mobile apps)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      } else {
+        return callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   })
 );
 
-
+// IMPORTANT
+// app.options("/*", cors());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 

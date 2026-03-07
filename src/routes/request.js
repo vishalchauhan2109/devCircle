@@ -219,8 +219,6 @@ requestRouter.get("/friends",UserAuth,
         ]
         })
         console.log(friends);
-        
-        console.log(friends)
         // const friend = await User.forEach((user)=>{
         //   const data =   user.find({
         //     _id: (friends.toUserId === loggedUser._id)?friends.fromUserId:friends.toUserId
