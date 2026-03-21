@@ -7,43 +7,29 @@ const http = require("http");
 
 const app = express();
 
+/* =========================
+   TRUST PROXY (IMPORTANT)
+========================= */
 app.set("trust proxy", 1);
 
 /* =========================
-   CORS CONFIG
+   CORS CONFIG (CLEAN)
 ========================= */
 
 const allowedOrigins = [
-  // LOCAL DEVELOPMENT
   "http://localhost:5173",
-  "http://localhost:3000", 
-  "http://localhost:8000",
-  "http://127.0.0.1:5173",
-  
-  // PRODUCTION DEPLOYMENTS
+  "http://localhost:3000",
+
   "https://dev-circlee.netlify.app",
   "https://devcirclefrontendd.onrender.com",
   "https://iridescent-cassata-dcb65a.netlify.app",
   "https://devcirclefrontend.onrender.com",
-  "https://be-devcircle.onrender.com",
 ];
 
 app.use(
   cors({
-    origin: function (origin, callback) {
-      // Allow requests with no origin (Postman, mobile apps, same-origin requests)
-      if (!origin || origin === undefined) return callback(null, true);
-
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      } else {
-        console.warn(`⚠️ CORS blocked request from origin: ${origin}`);
-        return callback(new Error("Not allowed by CORS"));
-      }
-    },
+    origin: allowedOrigins,
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
@@ -55,7 +41,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// ✅ STATIC FILES (ONLY ONE TIME)
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 /* =========================
@@ -74,7 +59,7 @@ app.use("/", requestRouter);
 app.use("/", postRouter);
 
 /* =========================
-   404 HANDLER (IMPORTANT)
+   404 HANDLER
 ========================= */
 
 app.use((req, res) => {
@@ -82,7 +67,7 @@ app.use((req, res) => {
 });
 
 /* =========================
-   DATABASE + SERVER
+   SERVER
 ========================= */
 
 const server = http.createServer(app);
@@ -92,12 +77,12 @@ const PORT = process.env.PORT || 2100;
 
 DB()
   .then(() => {
-    console.log(" Database connected");
+    console.log("Database connected");
 
     server.listen(PORT, () => {
-      console.log(" Server running on port 2100");
+      console.log(`Server running on port ${PORT}`);
     });
   })
   .catch((err) => {
-    console.error(" Database connection error:", err);
+    console.error("Database connection error:", err);
   });

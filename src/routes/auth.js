@@ -1,47 +1,29 @@
 const express = require("express");
-const { validationSignup } = require("../utils/Validation");
 const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const validator = require("validator");
 const jwt = require("jsonwebtoken");
-const authRouter = express.Router();
 
-console.log("999999");
+const authRouter = express.Router();
 
 //signup
 authRouter.post("/signup", async (req, res) => {
   try {
-    // Validation of data
-
-    validationSignup(req);
-
-    // Encrypt the password
-    const { firstName, lastName, emailId, password, photoURL, about } =
-      req.body;
+    const { firstName, lastName, emailId, password } = req.body;
 
     const passwordHash = await bcrypt.hash(password, 10);
-    // console.log(passwordHash);
 
-    //Creating a new  instance of the user mode
-
-    const firstname =
-      firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase();
-
-    const lastname =
-      lastName.charAt(0).toUpperCase() + lastName.slice(1).toLowerCase();
     const user = new User({
-      firstName: firstname,
-      lastName: lastName,
+      firstName,
+      lastName,
       emailId,
       password: passwordHash,
-      photoURL,
-      about,
     });
+
     await user.save();
-    res.send("new user added");
+    res.status(201).json({ message: "User created" });
   } catch (err) {
-    console.log(err);
-    res.status(402).send(err.message);
+    res.status(400).json({ error: err.message });
   }
 });
 
@@ -50,57 +32,48 @@ authRouter.post("/login", async (req, res) => {
   try {
     const { emailId, password } = req.body;
 
-    if (!validator.isEmail(emailId)) {
-      return res.status(400).json({ error: "Invalid email" });
-    }
-
+    // user check
     const user = await User.findOne({ emailId });
-    if (!user) {
-      return res.status(401).json({ error: "Invalid credentials" });
-    }
 
+    // password check
     const isValidPassword = await bcrypt.compare(password, user.password);
-    if (!isValidPassword) {
-      return res.status(401).json({ error: "Invalid credentials" });
-    }
 
-    // ✅ JWT (use env in production)
+    // 👉 JWT banaya
     const token = jwt.sign(
       { _id: user._id },
-      process.env.JWT_SECRET || "Vishal@2109",
-      { expiresIn: "7d" },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
     );
+
+    // 🔥 👉 YAHI PAR LAGANA HAI
+    const isProduction = process.env.NODE_ENV === "production";
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: true,
-      sameSite: "none",
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
+
+    // response
     res.status(200).json({
       message: "Login successful",
-      token,
-      user: {
-        _id: user._id,
-        firstName: user.firstName,
-        emailId: user.emailId,
-        photoURL: user.photoURL,
-        about: user.about,
-      },
+      user,
     });
+
   } catch (error) {
-    console.error(error);
     res.status(500).json({ error: "Login failed" });
   }
 });
 
+
 //logout
-authRouter.post("/logout", async (req, res) => {
-  res.cookie("token", null, {
-    expires: new Date(Date.now()),
+authRouter.post("/logout", (req, res) => {
+  res.cookie("token", "", {
+    expires: new Date(0),
   });
 
-  res.send("logout successfully");
+  res.send("Logged out");
 });
 
 module.exports = authRouter;
