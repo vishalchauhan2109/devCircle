@@ -25,6 +25,7 @@ const allowedOrigins = [
   "https://devcirclefrontendd.onrender.com",
   "https://iridescent-cassata-dcb65a.netlify.app",
   "https://devcirclefrontend.onrender.com",
+  "https://be-devcircle.onrender.com",
 ];
 
 app.use(
