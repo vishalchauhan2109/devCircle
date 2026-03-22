@@ -34,9 +34,17 @@ authRouter.post("/login", async (req, res) => {
 
     // user check
     const user = await User.findOne({ emailId });
+    
+    if (!user) {
+      return res.status(401).json({ error: "Invalid email or password" });
+    }
 
     // password check
     const isValidPassword = await bcrypt.compare(password, user.password);
+    
+    if (!isValidPassword) {
+      return res.status(401).json({ error: "Invalid email or password" });
+    }
 
     // 👉 JWT banaya
     const token = jwt.sign(
@@ -62,7 +70,8 @@ authRouter.post("/login", async (req, res) => {
     });
 
   } catch (error) {
-    res.status(500).json({ error: "Login failed" });
+    console.error("Login error:", error.message);
+    res.status(500).json({ error: error.message || "Login failed" });
   }
 });
 

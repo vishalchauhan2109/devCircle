@@ -1,2 +1,5 @@
 node_modules
+.env
+.env.local
+.env.*.local
 // file name in git ignore will not bbe pushed to github  it will be ignored
