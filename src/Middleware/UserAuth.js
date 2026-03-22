@@ -9,10 +9,8 @@ const UserAuth = async (req, res, next) => {
       return res.status(401).json({ error: "Not authenticated" });
     }
 
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET || "Vishal@2109"
-    );
+    const jwtSecret = process.env.JWT_SECRET || "Vishal@2109";
+    const decoded = jwt.verify(token, jwtSecret);
 
     const user = await User.findById(decoded._id).select("-password");
     if (!user) {

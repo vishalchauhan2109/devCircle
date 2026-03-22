@@ -47,19 +47,22 @@ authRouter.post("/login", async (req, res) => {
     }
 
     // 👉 JWT banaya
+    const jwtSecret = process.env.JWT_SECRET || "Vishal@2109";
     const token = jwt.sign(
       { _id: user._id },
-      process.env.JWT_SECRET,
+      jwtSecret,
       { expiresIn: "7d" }
     );
 
-    // 🔥 👉 YAHI PAR LAGANA HAI
-    const isProduction = process.env.NODE_ENV === "production";
+    const isProduction =
+      process.env.NODE_ENV === "production" ||
+      process.env.RENDER_ENV === "production";
 
     res.cookie("token", token, {
       httpOnly: true,
       secure: isProduction,
-      sameSite: isProduction ? "none" : "lax",
+      sameSite: "none", // cross-site frontend-backend cookie
+      path: "/",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
